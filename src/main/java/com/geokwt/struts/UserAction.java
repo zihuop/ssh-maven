@@ -19,6 +19,7 @@ public class UserAction {
     public String findData() {
         System.out.println("Action test.");
         userService.test();
+
         return null;
     }
 }
