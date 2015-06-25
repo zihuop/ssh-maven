@@ -7,10 +7,10 @@
 --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
-<head>`
-    <title>This is a index page.</title>
-</head>
-<body>
-<h2>This is a demo page.</h2>
-</body>
+  <head>
+    <title>星球数码</title>
+  </head>
+  <body>
+  <p><h2>This is a demo page.</h2></p>
+  </body>
 </html>

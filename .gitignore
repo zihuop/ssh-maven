@@ -6,3 +6,12 @@ pom.xml.next
 release.properties
 dependency-reduced-pom.xml
 buildNumber.properties
+.idea/workspace.xml
+out/artifacts/ssh_framework_war_exploded/index.jsp
+out/artifacts/ssh_framework_war_exploded/WEB-INF/web.xml
+out/artifacts/ssh_framework_war_exploded/WEB-INF/classes/applicationContext.xml
+*.class
+*.jar
+out/artifacts/ssh_framework_war_exploded/WEB-INF/classes/hibernate.cfg.xml
+*.xml
+out/artifacts/ssh_framework_war_exploded/WEB-INF/classes/config.properties
