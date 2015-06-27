@@ -1,4 +1,9 @@
 // Declare a Tile layer with an OSM source
+$().ready(function () {
+    /*动态计算地图Div高度*/
+    $('#map').height($(window).height()-80);
+    alert($(window).height()-80);
+});
 var osmLayer = new ol.layer.Tile({
     source: new ol.source.OSM()
 });
