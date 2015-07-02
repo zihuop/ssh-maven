@@ -48,34 +48,10 @@ var geoMap = {
         map.addControl(new ol.control.OverviewMap);//鹰眼
     },
     initVector:function() {
-        vectorLayer = new ol.layer.Vector({
-            source: new ol.source.TileVector({
-                format: new ol.format.TopoJSON(),
-                projection: 'EPSG:3857',
-                tileGrid: ol.tilegrid.createXYZ({
-                    maxZoom: 19
-                }),
-                url: ''
-            }),
-            style: new ol.style.Style({
-                fill: new ol.style.Fill({
-                    color: '#9db9e8'
-                })
-            })
-        });
-        map.addLayer(vectorLayer);
+
     },
     initwmsLayer:function() {
-        var wmsSource = new ol.source.TileWMS({
-            url: 'http://localhost:8090/geoserver/ssh/wms',
-            params: {'LAYERS': 'ssh:states'},
-            serverType: 'geoserver',
-            crossOrigin: ''
-        });
-        var wmsLayer = new ol.layer.Tile({
-            source: wmsSource
-        });
-        map.addLayer(wmsLayer);
+
     }
 };
 
