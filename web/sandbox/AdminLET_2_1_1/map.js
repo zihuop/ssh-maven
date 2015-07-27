@@ -13,8 +13,8 @@ $().ready(function () {
     $('.navbar-custom-menu>.navbar-nav li a').click(function () {
         if ($(this)[0].innerText == "加载") {
             geoMap.addWFSGetFeature();
-        }else{
-            alert('locate to london!');
+        }else if ($(this)[0].innerText == "定位"){
+            //alert('locate to london!');
             var london = ol.proj.fromLonLat([-0.12755, 51.507222]);
             var pan = ol.animation.pan({
                 duration: 2000,
@@ -34,8 +34,15 @@ $().ready(function () {
         var search = $('#searchkey').val();
         alert(search);
     });
-    //Select “start” and “destination”
-
+    //菜单
+    $('.sidebar-menu>.treeview li a').click(function () {
+        var aText = $(this)[0].innerText;
+        if (aText == "沉积物") {
+            BootstrapDialog.show({
+                message: "沉积物"
+            });
+        }
+    });
 })
 
 var geoMap = {
@@ -60,7 +67,7 @@ var geoMap = {
         map.setView(view);
 
         map.on('click', function(evt) {
-            geoMap.displayFeatureInfo(evt.pixel,'click');
+            geoMap.displayFeatureInfo(evt.coordinate,evt.pixel,'click');
         });
     },
     iniTools: function () {
@@ -97,7 +104,7 @@ var geoMap = {
         });
         map.addLayer(wmsLayer);
     },
-    displayFeatureInfo: function (pixel,eventType) {
+    displayFeatureInfo: function (coordinate,pixel,eventType) {
         var features = [];
         map.forEachFeatureAtPixel(pixel, function(feature, layer) {
             features.push(feature);
@@ -109,6 +116,8 @@ var geoMap = {
                 info.push(features[i].get('name'));
             }
             alert(eventType+'--'+info.join(', ') || '(unknown)');
+
+            geoMap.popWindow(coordinate);
         } else {
             console.log(eventType+'--'+'&nbsp;');
         }
@@ -125,22 +134,92 @@ var geoMap = {
         });
 
         map.addLayer(wmsLayer);
+        // format used to parse WFS GetFeature responses
+        var geojsonFormat = new ol.format.GeoJSON();
 
-        map.on('singleclick', function(evt) {
-            var fap = map.forEachFeatureAtPixel(evt.pixel,
-                function (feature, layer) {
-                    if (feature) {
-                        var geometry = feature.getGeometry();
-                        var coord = geometry.getCoordinates();
+        var vectorSource = new ol.source.Vector({
+            loader: function(extent, resolution, projection) {
+                var url = 'http://demo.boundlessgeo.com/geoserver/wfs?service=WFS&' +
+                    'version=1.1.0&request=GetFeature&typename=osm:water_areas&' +
+                    'outputFormat=text/javascript&format_options=callback:loadFeatures' +
+                    '&srsname=EPSG:3857&bbox=' + extent.join(',') + ',EPSG:3857';
+                // use jsonp: false to prevent jQuery from adding the "callback"
+                // parameter to the URL
+                $.ajax({url: url, dataType: 'jsonp', jsonp: false});
+            },
+            strategy: ol.loadingstrategy.tile(ol.tilegrid.createXYZ({
+                maxZoom: 19
+            }))
+        });
 
-                        console.log('coord: ' + coord); // coord 307225.8888888889,361595.6666666666
 
-                        console.log('id: ' + feature.get('name')); // name undefined
-                        var ft = wmsSource.getClosestFeatureToCoordinate(coord);
-                        console.log('name ' + ft.get('name')); // name Shefton
-                    }
-                });
-         });
+        /**
+         * JSONP WFS callback function.
+         * @param {Object} response The response object.
+         */
+        window.loadFeatures = function(response) {
+            vectorSource.addFeatures(geojsonFormat.readFeatures(response));
+        };
+
+        var vector = new ol.layer.Vector({
+            source: vectorSource,
+            style: new ol.style.Style({
+                stroke: new ol.style.Stroke({
+                    color: 'rgba(0, 0, 255, 1.0)',
+                    width: 2
+                })
+            })
+        });
+        map.addLayer(vector);
+        map.getView().setZoom(12);
+        map.getView().getCenter();
+        map.getView().setCenter([-8908887.277395891, 5381918.072437216]);
+        map.getView().setRotation(Math.PI);
+
+    },
+    popWindow: function (coordinate) {
+        /**
+         * Elements that make up the popup.
+         */
+        var container = document.getElementById('popup');
+        var content = document.getElementById('popup-content');
+        var closer = document.getElementById('popup-closer');
+        /**
+         * Add a click handler to hide the popup.
+         * @return {boolean} Don't follow the href.
+         */
+        closer.onclick = function() {
+            overlay.setPosition(undefined);
+            closer.blur();
+            return false;
+        };
+
+
+        /**
+         * Create an overlay to anchor the popup to the map.
+         */
+        var overlay = new ol.Overlay(/** @type {olx.OverlayOptions} */ ({
+            element: container,
+            autoPan: true,
+            autoPanAnimation: {
+                duration: 250
+            }
+        }));
+        map.addOverlay(overlay);
+
+        var element = overlay.getElement();
+        $(element).popover('destroy');
+        overlay.setPosition(coordinate);
+        var hdms = ol.coordinate.toStringHDMS(ol.proj.transform(
+            coordinate, 'EPSG:3857', 'EPSG:4326'));
+        // the keys are quoted to prevent renaming in ADVANCED mode.
+        $(element).popover({
+            'placement': 'top',
+            'animation': false,
+            'html': true,
+            'content': '<p>点击坐标:</p><code>' + hdms + '</code>'
+        });
+        $(element).popover('show');
     }
 };
 
